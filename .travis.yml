@@ -8,23 +8,18 @@ env:
   - COREOS_TRACK=beta
   - COREOS_TRACK=alpha
 before_script:
-- curl https://${COREOS_TRACK}.release.core-os.net/amd64-usr/current/version.txt -o
-  version.txt
+- curl https://${COREOS_TRACK}.release.core-os.net/amd64-usr/current/version.txt -o version.txt
 - export $(cat version.txt | xargs)
-- curl https://${COREOS_TRACK}.release.core-os.net/amd64-usr/${COREOS_VERSION}/coreos_production_image_packages.txt
-  -o packages.txt
-- export DOCKER_VERSION="$(cat packages.txt | grep -P 'app-emulation\/docker-([0-9]{2}.[0-9]{2}.[0-9]{1,2})'
-  -o | cut -d '-' -f 3)"
-- export RUNC_COMMIT="$(docker run --rm -it docker:$DOCKER_VERSION docker-runc -v
-  | grep commit | cut -d ' ' -f 2)"
+- curl https://${COREOS_TRACK}.release.core-os.net/amd64-usr/${COREOS_VERSION}/coreos_production_image_packages.txt -o packages.txt
+- export DOCKER_VERSION="$(cat packages.txt | grep -P 'app-emulation\/docker-([0-9]{2}.[0-9]{2}.[0-9]{1,2})' -o | cut -d '-' -f 3)"
+- export RUNC_COMMIT="$(docker run --rm -it docker:$DOCKER_VERSION docker-runc -v | grep commit | cut -d ' ' -f 2)"
 script:
 - wget https://github.com/NVIDIA/nvidia-container-runtime/archive/master.zip
 - unzip master.zip
 - cd nvidia-container-runtime-master
-- docker build --build-arg RUNC_COMMIT="${RUNC_COMMIT}" --build-arg PKG_VERS="x" --build-arg PKG_REV="1" -t nvidia-container-runtime -f Dockerfile.centos7 .
+- docker build --build-arg RUNC_COMMIT="${RUNC_COMMIT}" --build-arg PKG_VERS="x" --build-arg PKG_REV="1" -t trevex/nvidia-container-runtime -f Dockerfile.centos7 .
 - mkdir -p output
-- docker run --rm -i -v ${PWD}/output:/output nvidia-container-runtime cp -R /tmp/nvidia-container-runtime-x/SOURCES
-  /output
+- docker run --rm -i -v ${PWD}/output:/output trevex/nvidia-container-runtime cp -R /tmp/nvidia-container-runtime-x/SOURCES /output
 - cd output
 - export $ARTIFACT_FILE=nvidia-container-runtime-$COREOS_TRACK-$COREOS_VERSION.zip
 - zip -r ../../$ARTIFACT_FILE .

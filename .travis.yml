@@ -1,0 +1,40 @@
+dist: trusty
+sudo: required
+
+services:
+  - docker
+env:
+  matrix:
+    - COREOS_TRACK=stable
+    - COREOS_TRACK=beta
+    - COREOS_TRACK=alpha
+
+before_script:
+  - curl https://${COREOS_TRACK}.release.core-os.net/amd64-usr/current/version.txt -o version.txt
+  - export $(cat version.txt | xargs)
+  - curl https://${COREOS_TRACK}.release.core-os.net/amd64-usr/${COREOS_VERSION}/coreos_production_image_packages.txt -o packages.txt
+  - export DOCKER_VERSION="$(cat packages.txt | grep -P 'app-emulation\/docker-([0-9]{2}.[0-9]{2}.[0-9]{1,2})' -o | cut -d '-' -f 3)"
+  - export RUNC_COMMIT="$(docker run --rm -it docker:$DOCKER_VERSION docker-runc -v | grep commit | cut -d ' ' -f 2)"
+
+script:
+  - curl https://github.com/NVIDIA/nvidia-container-runtime/archive/master.zip -o master.zip
+  - unzip master.zip
+  - cd nvidia-container-runtime-master
+  - docker build --build-arg RUNC_COMMIT="$RUNC_COMMIT" \
+                         --build-arg PKG_VERS="x" \
+                         --build-arg PKG_REV="1" \
+                         -t nvidia-container-runtime -f Dockerfile.centos7 .
+  - mkdir -p output
+  - docker run --rm -i -v ${PWD}/output:/output nvidia-container-runtime cp -R /tmp/nvidia-container-runtime-x/SOURCES /output
+  - cd output
+  - export $ARTIFACT_FILE=nvidia-container-runtime-$COREOS_TRACK-$COREOS_VERSION.zip
+  - zip -r ../../$ARTIFACT_FILE .
+
+deploy:
+  provider: releases
+  apikey:
+    secure: "fj2N2nMefE7UMQhxwThA1PD9gKzG7ZpC1fzxDpDuXEBaNIjnaOciBhvvagUKXGdt7mOU0vN8pR1jXkWwT4F26LR6ix5gFuHMTVSnxyt1m/3XgnBp4iWleQi+XrVNldLIIAPZdHkZFjJpuytrsut2ANhzpnBHbfAS0Qq1x5uEaj3WQW2IfdBLPLYZHMJAUHegpf2z77QjTwuATebESMKDC5XP6us9iyhkpiD4g0fmP0Z/QaS64M7EETf47wCRv7t8aYDSnh+5O0MNvcvI9di6euN7UIzIjtZt3XY1rSVQ81mc9EcrgrVY/WrJ4wQztc3X0vL6UodAqnMWoPoSgkAaenw+e8AzqcnpcuMFrO9OfVPn0s4kKEwPiWOFVVasLa/c27m2Ui1t/lIx+mUXa7Kh+SfSSqxQtnU1kM4qQ18tzS0AlbOZ7g3YNkaXFxsiPz8znekLF+0SnnT+JNn5xCO0S4ks21qiGnTARVAtKWO0c9D/fpbQnNgjBkjmTs2i2fLF14NAGQLsUlWT6iz2fE5jlUbXeyacayEyo9K1EywOs8YoNCbkqZ1zoUctOBD4TT8HqznFiS8t/FHPaqNg2+GCMH/+5P8GA98rrMAMGoBCquFBzmxHJa6tU2kHoIaBEJk5QdmgC8xlsfnX79eCQJlhyeEm6y43HLIcxClpzS61FiY="
+  file: "${ARTIFACT_FILE}"
+    on:
+      repo: https://github.com/trevex/coreos-nvidia-container-runtime.git
+      tags: true

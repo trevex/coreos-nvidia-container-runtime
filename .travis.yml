@@ -22,7 +22,7 @@ script:
 - mkdir -p output
 - docker run --rm -i -v ${PWD}/output:/output trevex/nvidia-container-runtime cp -R /tmp/nvidia-container-runtime-x/SOURCES /output
 - cd output
-- export $ARTIFACT_FILE=nvidia-container-runtime-$COREOS_TRACK-$COREOS_VERSION.zip
+- export ARTIFACT_FILE=nvidia-container-runtime-$COREOS_TRACK-$COREOS_VERSION.zip
 - zip -r ../../$ARTIFACT_FILE .
 before_deploy:
   - git config --local user.name "Niklas Voss"

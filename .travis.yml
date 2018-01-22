@@ -28,7 +28,7 @@ script:
 before_deploy:
   - git config --local user.name "Niklas Voss"
   - git config --local user.email "niklas.voss@gmail.com"
-  - git tag "${COREOS_TRACK}-${COREOS_VERSION}"
+  - git tag "master"
 deploy:
   provider: releases
   api_key:

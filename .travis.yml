@@ -12,7 +12,8 @@ before_script:
 - export $(cat version.txt | xargs)
 - curl https://${COREOS_TRACK}.release.core-os.net/amd64-usr/${COREOS_VERSION}/coreos_production_image_packages.txt -o packages.txt
 - export DOCKER_VERSION="$(cat packages.txt | grep -P 'app-emulation\/docker-([0-9]{2}.[0-9]{2}.[0-9]{1,2})' -o | cut -d '-' -f 3)"
-- export RUNC_COMMIT="$(docker run --rm -it docker:$DOCKER_VERSION docker-runc -v | grep commit | cut -d ' ' -f 2)"
+- export RUNC_COMMIT="$(docker run --rm -it docker:$DOCKER_VERSION docker-runc -v | grep commit | cut -d ' ' -f 2 | xargs)"
+- export RUNC_COMMIT="${RUNC_COMMIT//[$'\t\r\n']}" 
 script:
 - wget https://github.com/NVIDIA/nvidia-container-runtime/archive/master.zip
 - unzip master.zip

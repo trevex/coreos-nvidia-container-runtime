@@ -17,7 +17,7 @@ script:
 - wget https://github.com/NVIDIA/nvidia-container-runtime/archive/master.zip
 - unzip master.zip
 - cd nvidia-container-runtime-master
-- docker build -q --build-arg RUNC_COMMIT=$RUNC_COMMIT --build-arg PKG_VERS="x" --build-arg PKG_REV="1" -t trevex/nvidia-container-runtime -f Dockerfile.centos7 .
+- docker build -q --build-arg RUNC_COMMIT="${RUNC_COMMIT}" --build-arg PKG_VERS="x" --build-arg PKG_REV="1" -t trevex/nvidia-container-runtime -f Dockerfile.centos7 .
 - mkdir -p output
 - docker run --rm -i -v ${PWD}/output:/output trevex/nvidia-container-runtime cp -R /tmp/nvidia-container-runtime-x/SOURCES /output
 - cd output

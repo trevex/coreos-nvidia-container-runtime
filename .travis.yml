@@ -18,7 +18,7 @@ before_script:
 - export RUNC_COMMIT="$(docker run --rm -it docker:$DOCKER_VERSION docker-runc -v
   | grep commit | cut -d ' ' -f 2)"
 script:
-- curl https://github.com/NVIDIA/nvidia-container-runtime/archive/master.zip -o master.zip
+- wget https://github.com/NVIDIA/nvidia-container-runtime/archive/master.zip
 - unzip master.zip
 - cd nvidia-container-runtime-master
 - docker build --build-arg RUNC_COMMIT="$RUNC_COMMIT" \ --build-arg PKG_VERS="x" \
@@ -29,11 +29,15 @@ script:
 - cd output
 - export $ARTIFACT_FILE=nvidia-container-runtime-$COREOS_TRACK-$COREOS_VERSION.zip
 - zip -r ../../$ARTIFACT_FILE .
-
+before_deploy:
+  - git config --local user.name "Niklas Voss"
+  - git config --local user.email "niklas.voss@gmail.com"
+  - git tag "${RUNC_COMMIT}"
 deploy:
   provider: releases
   api_key:
     secure: AhBkruTdeYSkr6t2CvTkPfy49zVTEPK5dMmIssnZhnoQ40siNMbHEN09jWYyBbDORptv6RuO7WaXu+rSnpY28ysKOJKSMmk5BvOvAh5AyuPe2HiySM4EbtLWCl+5P9IzxODAXPIIfdGeyPR+QV1KY6tYPiF72i0LOAyzShPo1m+vYR0n1NIgA/ouY1GOAsJRRFZPCbt55YEiRQDHXaF07IZHb87VneYLdGCwrMO0i3NgaUQ2TQlz+J5jOIdnIYltq1ooPVv0CtHITmCyBKpcIB83gdxoqOO0iIn/n0JxKFOZcv6kPGeB0jEBeyePVoHXw9P93BWj6nzm7n7B4cY8v5XuyM6oeR/RdomXMFJFxoy5wOM/5YMg6Ii9mYEZ5gTGqkOtW92+HJ4gOgxPW1tVqYo/CqQXZro9IMktw/M22uT1EYD+dI8m5glbYk0hpxFUrKOW8+DaUNBUM7KQtMNKmniHgmanCzKZYJxQt/dujqPPBmMmBcXT9cVfJVrnPZpfLb4wVYCUC/3OdBlhf/uFm5BnzOcQf+X8V1ygfAd5eHgQbPnvEx68oHcMLfqOfBHFgI1hk1C+Zj8p0YnqvOWEpLyO4h0MR3EKYnUkLIMP+lh4YBZV9ifVS/x/mL7rTO51vxUvPHWwzeMYiHDAVdyEhhX/9YkbgMQhJj5zkKPOB9U=
   file: "${ARTIFACT_FILE}"
+  skip_cleanup: true
   on:
     repo: trevex/coreos-nvidia-container-runtime

@@ -21,13 +21,14 @@ script:
 - docker build -q --build-arg RUNC_COMMIT="${RUNC_COMMIT}" --build-arg PKG_VERS="x" --build-arg PKG_REV="1" -t trevex/nvidia-container-runtime -f Dockerfile.centos7 .
 - mkdir -p output
 - docker run --rm -i -v ${PWD}/output:/output trevex/nvidia-container-runtime cp -R /tmp/nvidia-container-runtime-x/SOURCES /output
-- cd output
+- cd output/SOURCES
 - export ARTIFACT_FILE=nvidia-container-runtime-$COREOS_TRACK-$COREOS_VERSION.zip
-- zip -r ../../$ARTIFACT_FILE .
+- zip -r ../../../$ARTIFACT_FILE .
+- cd ../../..
 before_deploy:
   - git config --local user.name "Niklas Voss"
   - git config --local user.email "niklas.voss@gmail.com"
-  - git tag "${RUNC_COMMIT}"
+  - git tag "${COREOS_TRACK}-${COREOS_VERSION}"
 deploy:
   provider: releases
   api_key:
